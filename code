@@ -1,1 +1,61 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OrdinalEncoder
 
+
+# Load the dataset
+file_path = '/content/placement-dataset.csv'
+df = pd.read_csv(file_path)
+
+df.head()
+
+df.isnull().sum()
+
+df.duplicated().sum()
+
+# Fill missing values with the mean of the column
+df['cgpa'].fillna(df['cgpa'].mean(), inplace=True)
+df['iq'].fillna(df['iq'].mean(), inplace=True)
+
+# Encode the categorical variable
+ordinal_encoder = OrdinalEncoder()
+df['city'] = ordinal_encoder.fit_transform(df[['city']])
+
+
+# Normalize continuous variables
+df[['cgpa', 'iq']] = (df[['cgpa', 'iq']] - df[['cgpa', 'iq']].min()) / (df[['cgpa', 'iq']].max() - df[['cgpa', 'iq']].min())
+
+def gower_distance_manual(tuple1, tuple2):
+    n = len(tuple1)
+    sum_distances = 0
+    
+    for i in range(n):
+        if df.columns[i] in ['cgpa', 'iq']:  # Continuous variables
+            distance = np.abs(tuple1[i] - tuple2[i])
+        elif df.columns[i] == 'placement':  # Binary variable
+            distance = np.abs(tuple1[i] - tuple2[i])
+        elif df.columns[i] == 'city':  # Categorical variable
+            distance = 1 if tuple1[i] != tuple2[i] else 0
+        
+        sum_distances += distance
+    
+    return sum_distances / n
+
+# Extract the first two tuples
+tuple1 = df.iloc[0].values
+tuple2 = df.iloc[1].values
+
+# Compute the Gower's distance between the first two tuples
+distance = gower_distance_manual(tuple1, tuple2)
+print(distance)
+
+
+# Extract the first two tuples
+tuple1 = df.iloc[0].values
+tuple2 = df.iloc[1].values
+
+# Compute the Gower's distance between the first two tuples
+distance = gower_distance_manual(tuple1, tuple2)
+print(distance)
+
+print(f'Gower\'s Distance between tuple {tuple1} and tuple {tuple2} is : {distance}')
